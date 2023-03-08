@@ -150,7 +150,7 @@ dials.stills_process show_image_tags=true {args.path}/{f}/run{f}.h5 > tags.txt""
             tags_txt.writelines(tags_txt_lines_strip)
         with open("filter_radial_av.sh", "w") as filter_sh:
             filter_sh.write(r'''module load dials/nightly
-dxtbx.radial_average image_number=$event reference_geometry=''' + args.geom + r" show_plots=false " + args.path + r"/" + f + r"/run" + f + r'''.h5 > filter_radial_av_tmp.log
+dxtbx.radial_average reference_geometry=''' + args.geom + r" show_plots=false " + args.path + r"/" + f + r"/run" + f + r'''.h5 > filter_radial_av_tmp.log
 cat filter_radial_av_tmp.log | grep Average | awk '{print $5}' > filter_radial_av.log
 
 i=1
