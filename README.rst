@@ -20,4 +20,21 @@ Example of usage:
                            --spacegroup P21 --cell 50.0 60.0 70.0 90.0 90.0 90.0 --d_min 1.6 \
                            --threshold 30
 
+Before you use pppp2.py
+-----------------------
+
+As the current nightly builds of DIALS do not support merging groups yet, it is needed to source your customised DIALS installation. To do so, replace in pppp2.py these lines 205-206:
+
+.. code ::
+
+   module load dials/nightly
+   $ source /dls/science/users/FedID/dials/dials
+
+with these lines:
+
+.. code ::
+
+   # module load dials/nightly
+   source /path/to/your/dials/dials
+
 Developed by Martin Maly, `martin.maly@soton.ac.uk <mailto:martin.maly@soton.ac.uk>`_ , (University of Southampton and Diamond Light Source and CCP4]
