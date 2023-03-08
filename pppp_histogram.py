@@ -11,7 +11,7 @@ else:
 df = read_csv(csvfile, header=None, index_col=False, sep=',',
               names=("runevent", "radial_average"))
 x = df["radial_average"].to_numpy()
-n, bins, patches = plt.hist(x, 250, density=True, facecolor='g', alpha=0.75)
+n, bins, patches = plt.hist(x, 180, density=True, facecolor='g', alpha=0.75)
 plt.xlim([0, 90])
 
 plt.locator_params(nbins=9, axis='x')
