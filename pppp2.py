@@ -9,7 +9,7 @@ import h5py
 
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# python3 pppp2.py --geom /path/to/geometry_refinement/refined.expt \
+# dials.python pppp2.py --geom /path/to/geometry_refinement/refined.expt \
 #     --mask /path/to/mask/pixels3.mask \
 #     --pdb /path/to/reference.pdb \
 #     --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
@@ -82,7 +82,7 @@ def create_dose_point_h5(threshold_low, threshold_high=None):
 
 def run():
     parser = argparse.ArgumentParser(
-        description="Covert hkl file(s) from CrystFEL to mtz and calculate statistics"
+        description="pppp - Pump and Probe Processing Pipeline - 2nd script"
     )
     parser.add_argument(
         "--dir", "--path",

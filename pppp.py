@@ -60,7 +60,7 @@ def plot_histogram(inputfile='radial_average_all.csv', outputplot='radial_averag
 
 def run():
     parser = argparse.ArgumentParser(
-        description="Covert hkl file(s) from CrystFEL to mtz and calculate statistics"
+        description="pppp - Pump and Probe Processing Pipeline - 1st script"
     )
     parser.add_argument(
         "--dir", "--path",
