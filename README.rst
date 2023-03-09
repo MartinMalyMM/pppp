@@ -20,10 +20,10 @@ Example of usage:
                            --spacegroup P21 --cell 50.0 60.0 70.0 90.0 90.0 90.0 --d_min 1.6 \
                            --threshold 30
 
-Before you use pppp2.py
------------------------
+Customised installation of DIALS
+--------------------------------
 
-As the current nightly builds of DIALS do not support merging groups yet, it is needed to source your customised DIALS installation. To do so, replace in pppp2.py these lines 205-206:
+Sometimes a current nightly build of DIALS does not support all the required features. Then it is needed to source your customised DIALS installation. To do so, replace in pppp2.py these lines 205-206:
 
 .. code ::
 
