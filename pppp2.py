@@ -236,7 +236,7 @@ grouping=run_xia2.yml""")
 
     print(f"Executing xia2.ssh...")
     p = subprocess.Popen(
-        ['qsub', '-pe', 'smp', '20', 'run_xia2.sh'],# stdin=subprocess.PIPE,
+        ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         encoding="utf-8")  # shell=settings["sh"])
     output, err = p.communicate()
