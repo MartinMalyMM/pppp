@@ -48,13 +48,15 @@ def wait_until_qjob_finished(job_id, period=5):
 
 def plot_histogram(inputfile='radial_average_all.csv', outputplot='radial_average_all.png'):
     df = read_csv(inputfile, header=None, index_col=False, sep=',',
-            names=("runevent", "radial_average"))
+                  names=("runevent", "radial_average"))
     x = df["radial_average"].to_numpy()
+    n_images = x.size
     n, bins, patches = plt.hist(x, 250, density=True, facecolor='g', alpha=0.75)
     plt.xlim([0, 90])
     plt.xlabel('Radial average')
     plt.grid(True)
     plt.savefig(outputplot, bbox_inches="tight", dpi=200)
+    plt.title('Number of images used: ' + str(n_images))
     return outputplot
 
 

@@ -13,8 +13,9 @@ df = read_csv(csvfile, header=None, index_col=False, sep=',',
 x = df["radial_average"].to_numpy()
 n, bins, patches = plt.hist(x, 180, density=True, facecolor='g', alpha=0.75)
 plt.xlim([0, 90])
-
+n_images = x.size
 plt.locator_params(nbins=9, axis='x')
 plt.xlabel('Radial average')
 plt.grid(True)
+plt.title('Number of images used: ' + str(n_images))
 plt.savefig('radial_average_all.png', bbox_inches="tight", dpi=200)
