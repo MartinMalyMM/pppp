@@ -51,6 +51,7 @@ def create_dose_point_h5(threshold_low, threshold_high=None):
         lines = lines[0].split()
     if os.path.isfile("pump.txt"): os.remove("pump.txt")
     if os.path.isfile("probe.txt"): os.remove("probe.txt")
+    if os.path.isfile("not_assigned.txt"): os.remove("not_assigned.txt")
     a = np.array([], dtype='i')
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
@@ -152,6 +153,7 @@ def run():
         "--dials",
         help="Use dials.still_process and xia2.ssx_reduce for data processing",
         action="store_true",
+        default=False,
     )
     parser.add_argument(
         "--d_min", "--highres",
@@ -207,8 +209,10 @@ def run():
     for i, f in enumerate(args.files):
         f_list.append(f"{f}/run{f}")
     f_str = ",".join(f_list)
+    cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
+    cell_str_comma = str(args.cell[0]) + ", " + str(args.cell[1]) + ", " + str(args.cell[2]) + ", " + str(args.cell[3]) + ", " + str(args.cell[4]) + ", " + str(args.cell[5])
 
-    if args.xia2:
+    if args.xia2 and not args.dials:
         #
         # run_xia2.sh
         #
@@ -220,8 +224,6 @@ xia2.ssx run_xia2.phil image={args.path}/""" + "{" + f_str + "}.h5")
         #
         # run_xia2.phil
         #
-        cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
-        cell_str_comma = str(args.cell[0]) + ", " + str(args.cell[1]) + ", " + str(args.cell[2]) + ", " + str(args.cell[3]) + ", " + str(args.cell[4]) + ", " + str(args.cell[5])
         with open("run_xia2.phil", "w") as r:
             r.write(f"""reference_geometry={args.geom}
 mask={args.mask}
@@ -284,7 +286,7 @@ indexing {
   multiple_lattice_search.max_lattices=3
 }"""
         if args.d_min:
-            run_dials_phil_base += f"\nd_min={args.d_min}\n"
+            run_dials_phil_base += f"\nspotfinder.filter.d_min={args.d_min}\n"
 
         # run_dials.sh
         with open("run_dials.sh", "w") as r:
@@ -301,8 +303,8 @@ indexing {
                 os.chdir(group)
                 with open("run_dials.phil", "w") as r:
                     r.write(run_dials_phil_base)
-                    for line in pump_images.splitlines():
-                        r.write(f"input.image_tag={line}")
+                    for line in images.splitlines():
+                        r.write(f"input.image_tag={line}\n")
                 with open("run_dials.sh", "w") as r:
                     r.write(run_dials_sh_base)
                     r.write(f"{args.path}/{f}/run{f}.h5")
@@ -323,6 +325,9 @@ indexing {
         print("")
         print(str(job_ids1))
         print("Now you can have a break - time for tea or coffee!")
+
+        for j in range(len(job_ids1)):
+            wait_until_qjob_finished(job_ids1[j])
 
         job_ids2 = []
         for group in groups:
@@ -346,6 +351,7 @@ indexing {
                 print(f"STDERR: {err}")
             job_id = int(output.splitlines()[0].split()[2])
             job_ids2.append(job_id)
+            os.chdir("..")
         print(str(job_ids2))
     return
 
