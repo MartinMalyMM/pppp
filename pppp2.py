@@ -151,7 +151,7 @@ def run():
     )
     parser.add_argument(
         "--dials",
-        help="Use dials.still_process and xia2.ssx_reduce for data processing",
+        help="Use dials.stills_process and xia2.ssx_reduce for data processing",
         action="store_true",
         default=False,
     )
@@ -262,7 +262,7 @@ grouping=run_xia2.yml""")
 
 
     elif args.dials:
-        print(f"Executing dials.still_process jobs...")
+        print(f"Executing dials.stills_process jobs...")
         job_ids1 = []
         # run_dials.phil
         run_dials_phil_base = f"""input.reference_geometry={args.geom}
