@@ -143,6 +143,17 @@ def run():
         dest="just_xia2",
     )
     parser.add_argument(
+        "--xia2",
+        help="Use xia2.ssx for data processing",
+        action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--dials",
+        help="Use dials.still_process and xia2.ssx_reduce for data processing",
+        action="store_true",
+    )
+    parser.add_argument(
         "--d_min", "--highres",
         type=float,
         help="High-resolution cutoff",
@@ -197,21 +208,22 @@ def run():
         f_list.append(f"{f}/run{f}")
     f_str = ",".join(f_list)
 
-    #
-    # run_xia2.sh
-    #
-    with open("run_xia2.sh", "w") as r:
-        r.write(f"""module load global/cluster
-module load dials/nightly
+    if args.xia2:
+        #
+        # run_xia2.sh
+        #
+        with open("run_xia2.sh", "w") as r:
+            r.write(f"""module load dials/nightly
 # source /dls/science/users/FedID/dials/dials
 xia2.ssx run_xia2.phil image={args.path}/""" + "{" + f_str + "}.h5")
 
-    #
-    # run_xia2.phil
-    #
-    cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
-    with open("run_xia2.phil", "w") as r:
-        r.write(f"""reference_geometry={args.geom}
+        #
+        # run_xia2.phil
+        #
+        cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
+        cell_str_comma = str(args.cell[0]) + ", " + str(args.cell[1]) + ", " + str(args.cell[2]) + ", " + str(args.cell[3]) + ", " + str(args.cell[4]) + ", " + str(args.cell[5])
+        with open("run_xia2.phil", "w") as r:
+            r.write(f"""reference_geometry={args.geom}
 mask={args.mask}
 spotfinding.min_spot_size=2
 spotfinding.max_spot_size=10
@@ -219,34 +231,123 @@ space_group={args.spacegroup}
 indexing.unit_cell={cell_str}
 reference={args.pdb}
 grouping=run_xia2.yml""")
-        if args.d_min:
-            r.write(f"\nd_min={args.d_min}")
-
-    #
-    # run_xia2.yml
-    #
-    with open("run_xia2.yml", "w") as r:
-        r.write(f"metadata:\n  dose_point:\n")
-        for i, f in enumerate(args.files):
-            r.write(f'    "{args.path}/{f}/run{f}.h5" : "{os.getcwd()}/{f}/{f}_dose_point.h5:/dose_point"\n')
-        r.write("""grouping:
+            if args.d_min:
+                r.write(f"\nd_min={args.d_min}")
+    
+        #
+        # run_xia2.yml
+        #
+        with open("run_xia2.yml", "w") as r:
+            r.write(f"metadata:\n  dose_point:\n")
+            for i, f in enumerate(args.files):
+                r.write(f'    "{args.path}/{f}/run{f}.h5" : "{os.getcwd()}/{f}/{f}_dose_point.h5:/dose_point"\n')
+            r.write("""grouping:
   merge_by:
     values: 
       - dose_point""")
 
-    print(f"Executing xia2.ssh...")
-    p = subprocess.Popen(
-        ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        encoding="utf-8")  # shell=settings["sh"])
-    output, err = p.communicate()
-    if output:
-        print(f"STDOUT: {output}")
-    if err:
-        print(f"STDERR: {err}")
-    job_id = int(output.splitlines()[0].split()[2])
-    return
+        print(f"Executing xia2.ssh...")
+        p = subprocess.Popen(
+            ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            encoding="utf-8")  # shell=settings["sh"])
+        output, err = p.communicate()
+        if output:
+            print(f"STDOUT: {output}")
+        if err:
+            print(f"STDERR: {err}")
+        job_id = int(output.splitlines()[0].split()[2])
 
+
+    elif args.dials:
+        print(f"Executing dials.still_process jobs...")
+        job_ids1 = []
+        # run_dials.phil
+        run_dials_phil_base = f"""input.reference_geometry={args.geom}
+spotfinder.lookup.mask={args.mask}
+integration.lookup.mask={args.mask}
+spotfinder.filter.min_spot_size=2
+spotfinder.filter.max_spot_size=10
+significance_filter.enable=True
+#significance_filter.isigi_cutoff=1.0
+mp.nproc = 20
+mp.method=multiprocessing
+#refinement.parameterisation.detector.fix=none"""
+        run_dials_phil_base += """
+indexing {
+  known_symmetry {
+    space_group = """ + args.spacegroup + """
+     unit_cell = """ + cell_str_comma + """
+   }
+  stills.indexer=stills
+  stills.method_list=fft1d real_space_grid_search
+  multiple_lattice_search.max_lattices=3
+}"""
+        if args.d_min:
+            run_dials_phil_base += f"\nd_min={args.d_min}\n"
+
+        # run_dials.sh
+        with open("run_dials.sh", "w") as r:
+            run_dials_sh_base = "module load dials/nightly\n" \
+                "dials.stills_process run_dials.phil "
+
+        groups = ["pump", "probe"]
+        for i, f in enumerate(args.files):
+            os.chdir(f)
+            for group in groups:
+                with open(f"{group}.txt", "r") as p:
+                    images = p.read()
+                os.mkdir(group)
+                os.chdir(group)
+                with open("run_dials.phil", "w") as r:
+                    r.write(run_dials_phil_base)
+                    for line in pump_images.splitlines():
+                        r.write(f"input.image_tag={line}")
+                with open("run_dials.sh", "w") as r:
+                    r.write(run_dials_sh_base)
+                    r.write(f"{args.path}/{f}/run{f}.h5")
+                print(f"Executing dials.still_process... {f} {group}")
+                p = subprocess.Popen(
+                    ['qsub', '-pe', 'smp', '20', 'run_dials.sh'],# stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                    encoding="utf-8")  # shell=settings["sh"])
+                output, err = p.communicate()
+                if output:
+                    print(f"STDOUT: {output}")
+                if err:
+                    print(f"STDERR: {err}")
+                job_id = int(output.splitlines()[0].split()[2])
+                job_ids1.append(job_id)
+                os.chdir("..")
+            os.chdir("..")
+        print("")
+        print(str(job_ids1))
+        print("Now you can have a break - time for tea or coffee!")
+
+        job_ids2 = []
+        for group in groups:
+            os.mkdir(group)
+            os.chdir(group)
+            # run_ssx_reduce.sh
+            with open("run_xia2.sh", "w") as r:
+                r.write("module load dials/nightly\n")
+                r.write("xia2.ssx_reduce ")
+                for i, f in enumerate(args.files):
+                    r.write("../" + f + "/" + group + "/idx-*_integrated*.{expt,refl} ")
+            print(f"Executing xia2.ssx_reduce... {group}")
+            p = subprocess.Popen(
+                ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                encoding="utf-8")  # shell=settings["sh"])
+            output, err = p.communicate()
+            if output:
+                print(f"STDOUT: {output}")
+            if err:
+                print(f"STDERR: {err}")
+            job_id = int(output.splitlines()[0].split()[2])
+            job_ids2.append(job_id)
+        print(str(job_ids2))
+    return
 
 if __name__ == "__main__":
     run()
