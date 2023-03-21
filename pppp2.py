@@ -308,7 +308,7 @@ indexing {
                 with open("run_dials.sh", "w") as r:
                     r.write(run_dials_sh_base)
                     r.write(f"{args.path}/{f}/run{f}.h5")
-                print(f"Executing dials.still_process... {f} {group}")
+                print(f"Executing dials.stills_process... {f} {group}")
                 p = subprocess.Popen(
                     ['qsub', '-pe', 'smp', '20', 'run_dials.sh'],# stdin=subprocess.PIPE,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
