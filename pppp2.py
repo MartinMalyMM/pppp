@@ -178,6 +178,12 @@ def run():
         required=True
     )
     args = parser.parse_args()
+
+    print("PPPP Pump & Probe Processing Pipeline - step 2")
+    cwd = os.getcwd()
+    print(f"Working directory: {cwd}")
+    print("")
+
     if len(args.threshold) == 1:
         threshold_low = args.threshold[0]
         threshold_high = args.threshold[0]
@@ -188,14 +194,23 @@ def run():
         sys.exit('Argument --threshold takes one or two values')
     # TO DO     if not args.just_split and not ...
 
-    print("PPPP Pump & Probe Processing Pipeline - step 2")
-    cwd = os.getcwd()
-    print(f"Working directory: {cwd}")
-    print("")
+    # add -0 -1 -2 if not put in --files argument
+    files_are_full_list = True
+    for file in args.files:
+        if file[-2] != "-":
+            files_are_full_list = False
+    if files_are_full_list:
+        files = args.files
+    else:
+        files = []
+        for file in args.files:
+            files.append(file + "-0")
+            files.append(file + "-1")
+            files.append(file + "-2")
 
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
-        for i, f in enumerate(args.files):
+        for i, f in enumerate(files):
             os.chdir(f)
             create_dose_point_h5(threshold_low, threshold_high)
             os.chdir("..")
@@ -206,7 +221,7 @@ def run():
     if args.path[-1] == "/":
         args.path = args.path[:-1]
     f_list = []
-    for i, f in enumerate(args.files):
+    for i, f in enumerate(files):
         f_list.append(f"{f}/run{f}")
     f_str = ",".join(f_list)
     cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
@@ -241,7 +256,7 @@ grouping=run_xia2.yml""")
         #
         with open("run_xia2.yml", "w") as r:
             r.write(f"metadata:\n  dose_point:\n")
-            for i, f in enumerate(args.files):
+            for i, f in enumerate(files):
                 r.write(f'    "{args.path}/{f}/run{f}.h5" : "{os.getcwd()}/{f}/{f}_dose_point.h5:/dose_point"\n')
             r.write("""grouping:
   merge_by:
@@ -294,7 +309,7 @@ indexing {
                 "dials.stills_process run_dials.phil "
 
         groups = ["pump", "probe"]
-        for i, f in enumerate(args.files):
+        for i, f in enumerate(files):
             os.chdir(f)
             for group in groups:
                 with open(f"{group}.txt", "r") as p:
@@ -337,7 +352,7 @@ indexing {
             with open("run_xia2.sh", "w") as r:
                 r.write("module load dials/nightly\n")
                 r.write("xia2.ssx_reduce ")
-                for i, f in enumerate(args.files):
+                for i, f in enumerate(files):
                     r.write("../" + f + "/" + group + "/idx-*_integrated*.{expt,refl} ")
             print(f"Executing xia2.ssx_reduce... {group}")
             p = subprocess.Popen(
