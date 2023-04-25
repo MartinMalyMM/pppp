@@ -97,8 +97,22 @@ def run():
     print(f"Working directory: {cwd}")
     print("")
 
+    # add -0 -1 -2 if not put in --files argument
+    files_are_full_list = True
+    for file in args.files:
+        if file[-2] != "-":
+            files_are_full_list = False
+    if files_are_full_list:
+        files = args.files
+    else:
+        files = []
+        for file in args.files:
+            files.append(file + "-0")
+            files.append(file + "-1")
+            files.append(file + "-2")
+
     job_ids1 = []
-    for i, f in enumerate(args.files):
+    for i, f in enumerate(files):
         os.mkdir(f)
         os.chdir(f)
         with open("tags.sh", "w") as tags_sh:
@@ -130,7 +144,7 @@ dials.stills_process show_image_tags=true {args.path}/{f}/run{f}.h5 > tags.txt""
     #time.sleep(30)
 
     job_ids2 = []
-    for i, f in enumerate(args.files):
+    for i, f in enumerate(files):
         os.chdir(f)
         wait_until_not_empty('tags.txt')
         if not args.sim:
@@ -184,7 +198,7 @@ done <tags.txt''')
     print("Now you can have a break - time for tea or coffee!")
 
     radial_average_merge = []
-    for i, f in enumerate(args.files):
+    for i, f in enumerate(files):
         os.chdir(f)
         if args.sim:
             subprocess.check_call(['touch', 'radial_average.csv'], encoding="utf-8")
