@@ -111,7 +111,7 @@ def run():
         "--files",
         help="Names of files to be involved in processing",
         type=str,
-        required=True,
+        # required=True,
         nargs="+"
     )
     parser.add_argument(
@@ -182,7 +182,7 @@ def run():
         type=str,
         help="Specify space group",
         metavar="spacegroup",
-        required=True
+        # required=True
     )
     parser.add_argument(
         "--cell",
@@ -190,7 +190,7 @@ def run():
         nargs=6,
         help="Specify unit cell parameters divided by spaces, e.g. 60 50 40 90 90 90",
         metavar=("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
-        required=True
+        # required=True
     )
     args = parser.parse_args()
 
@@ -209,19 +209,25 @@ def run():
         sys.exit('Argument --threshold takes one or two values')
     # TO DO     if not args.just_split and not ...
 
-    # add -0 -1 -2 if not put in --files argument
-    files_are_full_list = True
-    for file in args.files:
-        if file[-2] != "-":
-            files_are_full_list = False
-    if files_are_full_list:
-        files = args.files
-    else:
-        files = []
+    if args.files:
+        # add -0 -1 -2 if not put in --files argument
+        files_are_full_list = True
         for file in args.files:
-            files.append(file + "-0")
-            files.append(file + "-1")
-            files.append(file + "-2")
+            if file[-2] != "-":
+                files_are_full_list = False
+        if files_are_full_list:
+            files = args.files
+        else:
+            files = []
+            for file in args.files:
+                files.append(file + "-0")
+                files.append(file + "-1")
+                files.append(file + "-2")
+    else:
+        files = [ f.path for f in os.scandir(".") if f.is_dir() ]
+        for i, f in enumerate(files):
+            files[i] = files[i].replace(".", "")
+            files[i] = files[i].replace("/", "")
 
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
