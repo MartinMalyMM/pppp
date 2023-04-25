@@ -64,7 +64,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None):
         rad_average = float(line[1])
         file_h5 = run.split("_")[0].replace("run", "")
         event = str(int(run.split("_")[1]))
-        line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5  //{event} \n"
+        line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
         if rad_average < threshold_low:
             a = np.append(a, 0)
             with open("pump.txt", "a+") as f:
@@ -229,6 +229,9 @@ def run():
             files[i] = files[i].replace(".", "")
             files[i] = files[i].replace("/", "")
 
+    if args.path[-1] == "/":
+        args.path = args.path[:-1]
+
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
         for i, f in enumerate(files):
@@ -239,8 +242,6 @@ def run():
         print("Done.")
         return
 
-    if args.path[-1] == "/":
-        args.path = args.path[:-1]
     f_list = []
     for i, f in enumerate(files):
         f_list.append(f"{f}/run{f}")
