@@ -233,7 +233,7 @@ def run():
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
         for i, f in enumerate(files):
             os.chdir(f)
-            create_dose_point_h5(args.dir, threshold_low, threshold_high)
+            create_dose_point_h5(args.path, threshold_low, threshold_high)
             os.chdir("..")
     if args.just_split:
         print("Done.")
