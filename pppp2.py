@@ -59,7 +59,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         with open(events, "r") as f_events:
             lines_events = f_events.readlines()
     a = np.array([], dtype='i')
-    i_last = 0
+    now_doing = None
+    j = 0
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
             continue
@@ -69,8 +70,6 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         file_h5 = run.split("_")[0].replace("run", "")
         # event = str(int(run.split("_")[1]))
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
-        now_doing = None
-        j = 0
         if events:
             if now_doing is not file_h5:
                 now_doing = file_h5
