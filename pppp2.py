@@ -52,6 +52,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None):
     if os.path.isfile("pump.txt"): os.remove("pump.txt")
     if os.path.isfile("probe.txt"): os.remove("probe.txt")
     if os.path.isfile("not_assigned.txt"): os.remove("not_assigned.txt")
+    if os.path.isfile("events_all.lst"): os.remove("events_all.lst")
     if os.path.isfile("events_pump.lst"): os.remove("events_pump.lst")
     if os.path.isfile("events_probe.lst"): os.remove("events_probe.lst")
     if os.path.isfile("events_not_assigned.lst"): os.remove("events_not_assigned.lst")
@@ -125,6 +126,11 @@ def run():
         help="Path to a geometry file",
         type=str,
         #required=True,
+    )
+    parser.add_argument(
+        "--geom_crystfel",
+        help="Path to a geometry file for CrystFEL",
+        type=str,
     )
     parser.add_argument(
         "--mask",
@@ -231,6 +237,24 @@ def run():
 
     if args.path[-1] == "/":
         args.path = args.path[:-1]
+
+    # create files.lst for crystfel
+    for i, f in enumerate(files):
+        with open("files.lst", "a+") as files_lst:
+            files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
+''')
+    # create events.lst for crystfel
+    if args.geom_crystfel:
+        print("Creating events.lst for CrystFEL")
+        p = subprocess.Popen(
+            ['module', 'load', 'crystfel', '&&', 'list_events', '-i', 'files.lst', '-o', 'events.lst', '-g', args.geom_crystfel],# stdin=subprocess.PIPE,
+             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+             encoding="utf-8")  # shell=settings["sh"])
+        output, err = p.communicate()
+        if output:
+            print(f"STDOUT: {output}")
+        if err:
+            print(f"STDERR: {err}")
 
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
