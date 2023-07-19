@@ -57,10 +57,11 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         if os.path.isfile("events_probe.lst"): os.remove("events_probe.lst")
         if os.path.isfile("events_not_assigned.lst"): os.remove("events_not_assigned.lst")
         with open(events, "r") as f_events:
-            lines_events = f_events.readlines()
+            lines_events_all = f_events.readlines()
     a = np.array([], dtype='i')
     now_doing = None
     j = 0
+    i_last = 0
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
             continue
@@ -71,12 +72,18 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         # event = str(int(run.split("_")[1]))
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
         if events:
-            if now_doing is not file_h5:
-                now_doing = file_h5
-                j = i
-                print("New j = " + str(j) + " while doing " + file_h5)
-            with open(events, 'r') as f_events:
-                line_event = lines_events[i + j]
+            if i == 0:
+                lines_events = list(filter(lambda x:file_h5 in x, lines_events_all))
+                print(str(len(lines_events)))
+            # print(str(now_doing) + " " + (file_h5))
+            #if str(now_doing) != str(file_h5):
+            #    print("Was doing " + str(now_doing))
+            #    now_doing = file_h5
+            #    j = i_last
+            #    print("New j = " + str(j) + " while doing " + file_h5 + " " + str(now_doing))
+            #with open(events, 'r') as f_events:
+            #    line_event = lines_events[i + j]
+            line_event = lines_events[i]
         if rad_average < threshold_low:
             a = np.append(a, 0)
             with open("pump.txt", "a+") as f:
@@ -98,6 +105,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
+        i_last = i
     print(f"File created: {os.path.basename(os.getcwd())}/pump.txt")
     print(f"File created: {os.path.basename(os.getcwd())}/probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
@@ -264,6 +272,8 @@ def run():
     #         files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
     #''')
 
+    events_pump_merge = []
+    events_probe_merge = []
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
         for i, f in enumerate(files):
@@ -272,7 +282,20 @@ def run():
             if args.events:
                 events = args.events
             create_dose_point_h5(args.path, threshold_low, threshold_high, events)
+            if args.events:
+                with open("events_pump.lst", "r") as events_pump_lst:
+                    events_pump_lines = events_pump_lst.readlines()
+                with open("events_probe.lst", "r") as events_probe_lst:
+                    events_probe_lines = events_probe_lst.readlines()
+                events_pump_merge = events_pump_merge + events_pump_lines
+                events_probe_merge = events_probe_merge + events_probe_lines
             os.chdir("..")
+    if args.events:
+        with open("events_pump.lst", "w") as f:
+            f.write(''.join(events_pump_merge))
+        with open("events_probe.lst", "w") as f:
+            f.write(''.join(events_probe_merge))
+
     if args.just_split:
         print("Done.")
         return
