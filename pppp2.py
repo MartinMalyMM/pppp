@@ -42,7 +42,7 @@ def wait_until_qjob_finished(job_id, period=5):
     return False
 
 
-def create_dose_point_h5(dir, threshold_low, threshold_high=None):
+def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
     if not threshold_high:
         threshold_high = threshold_low
     with open("radial_average.csv", "r") as f:
@@ -52,10 +52,14 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None):
     if os.path.isfile("pump.txt"): os.remove("pump.txt")
     if os.path.isfile("probe.txt"): os.remove("probe.txt")
     if os.path.isfile("not_assigned.txt"): os.remove("not_assigned.txt")
-    if os.path.isfile("events_all.lst"): os.remove("events_all.lst")
-    if os.path.isfile("events_pump.lst"): os.remove("events_pump.lst")
-    if os.path.isfile("events_probe.lst"): os.remove("events_probe.lst")
-    if os.path.isfile("events_not_assigned.lst"): os.remove("events_not_assigned.lst")
+    if events:
+        if os.path.isfile("events_pump.lst"): os.remove("events_pump.lst")
+        if os.path.isfile("events_probe.lst"): os.remove("events_probe.lst")
+        if os.path.isfile("events_not_assigned.lst"): os.remove("events_not_assigned.lst")
+        with open(events, "r") as f_events:
+            lines_events = f_events.readlines()
+        print("Lines in radial_average.csv: " + str(len(lines)))
+        print("Lines in " + events + " : " + str(len(lines_events)))
     a = np.array([], dtype='i')
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
@@ -65,31 +69,37 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None):
         rad_average = float(line[1])
         file_h5 = run.split("_")[0].replace("run", "")
         event = str(int(run.split("_")[1]))
-        line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
+        # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
+        with open(events, 'r') as f_events:
+            line_event = lines_events[i]
         if rad_average < threshold_low:
             a = np.append(a, 0)
             with open("pump.txt", "a+") as f:
                 f.write(run + "\n")
-            with open("events_pump.lst", "a+") as f:
-                f.write(line_crystfel)
+            if events:
+                with open("events_pump.lst", "a+") as f:
+                    f.write(line_event)
         elif rad_average >= threshold_high:
             a = np.append(a, 1)
             with open("probe.txt", "a+") as f:
                 f.write(run + "\n")
-            with open("events_probe.lst", "a+") as f:
-                f.write(line_crystfel)
+            if events:
+                with open("events_probe.lst", "a+") as f:
+                    f.write(line_event)
         else:
             a = np.append(a, 2)
             with open("not_assigned.txt", "a+") as f:
                 f.write(run + "\n")
-            with open("events_not_assigned.lst", "a+") as f:
-                f.write(line_crystfel)
+            if events:
+                with open("events_not_assigned.lst", "a+") as f:
+                    f.write(line_event)
     print(f"File created: {os.path.basename(os.getcwd())}/pump.txt")
     print(f"File created: {os.path.basename(os.getcwd())}/probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
-    print(f"File created: {os.path.basename(os.getcwd())}/events_pump.lst")
-    print(f"File created: {os.path.basename(os.getcwd())}/events_probe.lst")
-    if os.path.isfile("events_not_assigned.lst"): print(f"File created: {os.path.basename(os.getcwd())}/events_not_assigned.lst")
+    if events:
+        print(f"File created: {os.path.basename(os.getcwd())}/events_pump.lst")
+        print(f"File created: {os.path.basename(os.getcwd())}/events_probe.lst")
+        if os.path.isfile("events_not_assigned.lst"): print(f"File created: {os.path.basename(os.getcwd())}/events_not_assigned.lst")
     f = h5py.File(os.path.basename(os.getcwd()) + '_dose_point.h5', 'w')
     f.create_dataset("dose_point", data=a)
     f.close()
@@ -130,6 +140,11 @@ def run():
     parser.add_argument(
         "--geom_crystfel",
         help="Path to a geometry file for CrystFEL",
+        type=str,
+    )
+    parser.add_argument(
+        "--events",
+        help="events.lst file from CrystFEL",
         type=str,
     )
     parser.add_argument(
@@ -239,28 +254,19 @@ def run():
         args.path = args.path[:-1]
 
     # create files.lst for crystfel
-    for i, f in enumerate(files):
-        with open("files.lst", "a+") as files_lst:
-            files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
-''')
-    # create events.lst for crystfel
-    if args.geom_crystfel:
-        print("Creating events.lst for CrystFEL")
-        p = subprocess.Popen(
-            ['module', 'load', 'crystfel', '&&', 'list_events', '-i', 'files.lst', '-o', 'events.lst', '-g', args.geom_crystfel],# stdin=subprocess.PIPE,
-             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-             encoding="utf-8")  # shell=settings["sh"])
-        output, err = p.communicate()
-        if output:
-            print(f"STDOUT: {output}")
-        if err:
-            print(f"STDERR: {err}")
+    # for i, f in enumerate(files):
+    #     with open("files.lst", "a+") as files_lst:
+    #         files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
+    #''')
 
     if not args.just_xia2:
         print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
         for i, f in enumerate(files):
             os.chdir(f)
-            create_dose_point_h5(args.path, threshold_low, threshold_high)
+            events = None
+            if args.events:
+                events = args.events
+            create_dose_point_h5(args.path, threshold_low, threshold_high, events)
             os.chdir("..")
     if args.just_split:
         print("Done.")

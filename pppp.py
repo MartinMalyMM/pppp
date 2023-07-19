@@ -226,6 +226,7 @@ done <tags.txt''')
     with open("radial_average_all.csv", "w") as f:
         f.write('\n'.join(radial_average_merge))
     print("Check data in the file radial_average_all.csv")
+    print("You can use it to plot a histogram.")
 
     try:
         import numpy as np
@@ -235,19 +236,22 @@ done <tags.txt''')
         outputplot = plot_histogram(inputfile='radial_average_all.csv', outputplot='radial_average_all.png')
         print(f"Histogram plotted to {outputplot}")
     except:
-        print("You can use it to plot a histogram.")
+        print(f"Histogram not plotted. :-(")
 
     if args.geom_crystfel:
         print("Creating events.lst for CrystFEL")
-        p = subprocess.Popen(
-            ['module', 'load', 'crystfel', '&&', 'list_events', '-i', 'files.lst', '-o', 'events.lst', '-g', args.geom_crystfel],# stdin=subprocess.PIPE,
-             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-             encoding="utf-8")  # shell=settings["sh"])
-        output, err = p.communicate()
-        if output:
-            print(f"STDOUT: {output}")
-        if err:
-            print(f"STDERR: {err}")
+        try:
+            p = subprocess.Popen(
+                ['module', 'load', 'crystfel', '&&', 'list_events', '-i', 'files.lst', '-o', 'events.lst', '-g', args.geom_crystfel],# stdin=subprocess.PIPE,
+                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                 encoding="utf-8")  # shell=settings["sh"])
+            output, err = p.communicate()
+            if output:
+                print(f"STDOUT: {output}")
+            if err:
+                print(f"STDERR: {err}")
+        except:
+            print("Error occured while creating events.lst for CrystFEL")
 
     print("Done.")
 
