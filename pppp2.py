@@ -74,7 +74,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         if events:
             if now_doing is not file_h5:
                 now_doing = file_h5
-            j = i
+                j = i
+                print("New j = " + str(j) + " while doing " + file_h5)
             with open(events, 'r') as f_events:
                 line_event = lines_events[i + j]
         if rad_average < threshold_low:
