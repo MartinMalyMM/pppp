@@ -141,6 +141,11 @@ dials.stills_process show_image_tags=true {args.path}/{f}/run{f}.h5 > tags.txt""
         else:
             subprocess.check_call(['touch', 'tags.txt'], encoding="utf-8")
         os.chdir("..")
+        # create files.lst for crystfel
+        with open("files.lst", "a+") as files_lst:
+            files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
+''')
+
     print("")
     print("List of jobs now running:")
     print(str(job_ids1))
@@ -198,10 +203,6 @@ done <tags.txt''')
             job_id = int(output.splitlines()[0].split()[2])
             job_ids2.append(job_id)
         os.chdir("..")
-
-        # files.lst for crystfel
-        with open("files.lst", "a+") as files_lst:
-            files_lst.write(args.path + "/" + f + "/run" + f + '.h5/n')
 
 
     print("")
