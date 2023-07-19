@@ -80,9 +80,14 @@ def run():
     )
     parser.add_argument(
         "--geom",
-        help="Path to a geometry file",
+        help="Path to a geometry file for DIALS",
         type=str,
         required=True,
+    )
+    parser.add_argument(
+        "--geom_crystfel",
+        help="Path to a geometry file for CrystFEL",
+        type=str,
     )
     parser.add_argument(
         "--sim", "--simulate",
@@ -193,6 +198,12 @@ done <tags.txt''')
             job_id = int(output.splitlines()[0].split()[2])
             job_ids2.append(job_id)
         os.chdir("..")
+
+        # files.lst for crystfel
+        with open("files.lst", "a+") as files_lst:
+            files_lst.write(args.path + "/" + f + "/run" + f + '.h5/n')
+
+
     print("")
     print(str(job_ids2))
     print("Now you can have a break - time for tea or coffee!")
@@ -224,6 +235,19 @@ done <tags.txt''')
         print(f"Histogram plotted to {outputplot}")
     except:
         print("You can use it to plot a histogram.")
+
+    if args.geom_crystfel:
+        print("Creating events.lst for CrystFEL")
+        p = subprocess.Popen(
+            ['module', 'load', 'crystfel', '&&', 'list_events', '-i', 'files.lst', '-o', 'events.lst', '-g', args.geom_crystfel],# stdin=subprocess.PIPE,
+             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+             encoding="utf-8")  # shell=settings["sh"])
+        output, err = p.communicate()
+        if output:
+            print(f"STDOUT: {output}")
+        if err:
+            print(f"STDERR: {err}")
+
     print("Done.")
 
 
