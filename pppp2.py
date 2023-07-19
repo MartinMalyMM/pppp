@@ -59,9 +59,6 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         with open(events, "r") as f_events:
             lines_events_all = f_events.readlines()
     a = np.array([], dtype='i')
-    now_doing = None
-    j = 0
-    i_last = 0
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
             continue
@@ -75,14 +72,6 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if i == 0:
                 lines_events = list(filter(lambda x:file_h5 in x, lines_events_all))
                 print(str(len(lines_events)))
-            # print(str(now_doing) + " " + (file_h5))
-            #if str(now_doing) != str(file_h5):
-            #    print("Was doing " + str(now_doing))
-            #    now_doing = file_h5
-            #    j = i_last
-            #    print("New j = " + str(j) + " while doing " + file_h5 + " " + str(now_doing))
-            #with open(events, 'r') as f_events:
-            #    line_event = lines_events[i + j]
             line_event = lines_events[i]
         if rad_average < threshold_low:
             a = np.append(a, 0)
@@ -105,7 +94,6 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
-        i_last = i
     print(f"File created: {os.path.basename(os.getcwd())}/pump.txt")
     print(f"File created: {os.path.basename(os.getcwd())}/probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
