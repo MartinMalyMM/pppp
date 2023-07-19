@@ -58,9 +58,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         if os.path.isfile("events_not_assigned.lst"): os.remove("events_not_assigned.lst")
         with open(events, "r") as f_events:
             lines_events = f_events.readlines()
-        print("Lines in radial_average.csv: " + str(len(lines)))
-        print("Lines in " + events + " : " + str(len(lines_events)))
     a = np.array([], dtype='i')
+    i_last = 0
     for i, l in enumerate(lines):
         if lines[i].strip() == "":
             continue
@@ -68,10 +67,16 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         run = line[0]
         rad_average = float(line[1])
         file_h5 = run.split("_")[0].replace("run", "")
-        event = str(int(run.split("_")[1]))
+        # event = str(int(run.split("_")[1]))
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
-        with open(events, 'r') as f_events:
-            line_event = lines_events[i]
+        now_doing = None
+        j = 0
+        if events:
+            if now_doing is not file_h5:
+                now_doing = file_h5
+            j = i
+            with open(events, 'r') as f_events:
+                line_event = lines_events[i + j]
         if rad_average < threshold_low:
             a = np.append(a, 0)
             with open("pump.txt", "a+") as f:
@@ -93,6 +98,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
+        if events:
+            j = j + 1
     print(f"File created: {os.path.basename(os.getcwd())}/pump.txt")
     print(f"File created: {os.path.basename(os.getcwd())}/probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
