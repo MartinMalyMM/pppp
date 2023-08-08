@@ -46,7 +46,7 @@ def isfile_or_touch(path):
     if os.path.isfile(path):
         print(f"File created: {path}")
     else:
-        open(path, 'a').close()
+        Path(path).touch()
         print(f"File empty: {path}")
     return
 
