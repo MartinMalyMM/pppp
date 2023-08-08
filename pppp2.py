@@ -47,7 +47,7 @@ def isfile_or_touch(path):
         print(f"File created: {os.path.basename(os.getcwd())}/{path}")
     else:
         Path(path).touch()
-        print(f"File empty: {os.path.basename(os.getcwd())}/{path}")
+        print(f"File empty:  {os.path.basename(os.getcwd())}/{path}")
     return
 
 
