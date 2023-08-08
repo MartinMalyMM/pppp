@@ -46,7 +46,7 @@ def isfile_or_touch(path):
     if os.path.isfile(path):
         print(f"File created: {os.path.basename(os.getcwd())}/{path}")
     else:
-        subrocess.call(["touch", path])
+        Path(path).touch()
         print(f"File empty: {os.path.basename(os.getcwd())}/{path}")
     return
 
