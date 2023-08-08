@@ -42,6 +42,15 @@ def wait_until_qjob_finished(job_id, period=5):
     return False
 
 
+def isfile_or_touch(path):
+    if os.path_isfile(path):
+        print(f"File created: {path}")
+    else:
+        open(path, 'a').close()
+        print(f"File empty: {path}")
+    return
+
+
 def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
     if not threshold_high:
         threshold_high = threshold_low
@@ -70,6 +79,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
         if events:
             if i == 0:
+                print(file_h5)
+                print(lines_events_all[i])
                 lines_events = list(filter(lambda x:file_h5 in x, lines_events_all))
                 print(str(len(lines_events)))
             line_event = lines_events[i]
@@ -94,12 +105,12 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
-    print(f"File created: {os.path.basename(os.getcwd())}/pump.txt")
-    print(f"File created: {os.path.basename(os.getcwd())}/probe.txt")
+    isfile_or_touch(os.path.basename(os.getcwd()) + "/pump.txt")
+    isfile_or_touch(os.path.basename(os.getcwd()) + "/probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
     if events:
-        print(f"File created: {os.path.basename(os.getcwd())}/events_pump.lst")
-        print(f"File created: {os.path.basename(os.getcwd())}/events_probe.lst")
+        isfile_or_touch(os.path.basename(os.getcwd()) + "/events_pump.lst")
+        isfile_or_touch(os.path.basename(os.getcwd()) + "/events_probe.lst")
         if os.path.isfile("events_not_assigned.lst"): print(f"File created: {os.path.basename(os.getcwd())}/events_not_assigned.lst")
     f = h5py.File(os.path.basename(os.getcwd()) + '_dose_point.h5', 'w')
     f.create_dataset("dose_point", data=a)
