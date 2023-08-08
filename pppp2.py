@@ -43,7 +43,7 @@ def wait_until_qjob_finished(job_id, period=5):
 
 
 def isfile_or_touch(path):
-    if os.path_isfile(path):
+    if os.path.isfile(path):
         print(f"File created: {path}")
     else:
         open(path, 'a').close()
