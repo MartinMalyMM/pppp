@@ -44,10 +44,10 @@ def wait_until_qjob_finished(job_id, period=5):
 
 def isfile_or_touch(path):
     if os.path.isfile(path):
-        print(f"File created: {path}")
+        print(f"File created: {os.path.basename(os.getcwd())}/{path}")
     else:
-        Path(path).touch()
-        print(f"File empty: {path}")
+        subrocess.call(["touch", path])
+        print(f"File empty: {os.path.basename(os.getcwd())}/{path}")
     return
 
 
@@ -105,12 +105,12 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
-    isfile_or_touch(os.path.basename(os.getcwd()) + "/pump.txt")
-    isfile_or_touch(os.path.basename(os.getcwd()) + "/probe.txt")
+    isfile_or_touch("pump.txt")
+    isfile_or_touch("probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
     if events:
-        isfile_or_touch(os.path.basename(os.getcwd()) + "/events_pump.lst")
-        isfile_or_touch(os.path.basename(os.getcwd()) + "/events_probe.lst")
+        isfile_or_touch("events_pump.lst")
+        isfile_or_touch("events_probe.lst")
         if os.path.isfile("events_not_assigned.lst"): print(f"File created: {os.path.basename(os.getcwd())}/events_not_assigned.lst")
     f = h5py.File(os.path.basename(os.getcwd()) + '_dose_point.h5', 'w')
     f.create_dataset("dose_point", data=a)
