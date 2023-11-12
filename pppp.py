@@ -7,6 +7,12 @@ import time
 import numpy as np
 
 # ----------------------------------------------------------------------
+# pppp - X-ray Pump and Probe Processing Pipeline
+# 1st script - calculate average total scattered intensity
+#
+# Martin Maly - martin.maly@soton.ac.uk
+# https://github.com/MartinMalyMM/pppp
+# ----------------------------------------------------------------------
 # EXAMPLE USAGE
 # dials.python pppp.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --files 133451 --geom /path/to/geometry_refinement/refined.expt --geom_crystfel /path/to/geometry1.geom
 # dials.python pppp.py --geom /path/to/geometry_refinement/refined.expt --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --files 133451-0 133451-1 133451-2
@@ -21,10 +27,11 @@ import numpy as np
 #            IMPORTANT SETTING - PATHS TO DIALS AND CRYSTFEL
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SOURCE_DIALS = "module load dials/nightly"
-# SOURCE_DIALS = "source /opt/dials/dials"
+# SOURCE_DIALS = ""
 SOURCE_CRYSTFEL = "module load crystfel"
 # SOURCE_CRYSTFEL = ""
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 
 # https://stackoverflow.com/questions/2785821/is-there-an-easy-way-in-python-to-wait-until-certain-condition-is-true
 def wait_until_not_empty(filename, period=5):
@@ -59,6 +66,15 @@ def wait_until_qjob_finished(job_id, period=5):
 
 
 def plot_histogram(inputfile='average_intensity_all.csv', outputplot='average_intensity_all.png'):
+    try:
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from pandas import read_csv
+    except:
+        print(f"Histogram not plotted. An error ocurred while importing numpy, matplotlib.pyplot or pandas.")
+        return None
+
+    print("Plotting the result...")
     print("a")
     df = read_csv(inputfile, header=None, index_col=False, sep=',',
                   names=("runevent", "average_intensity"))
@@ -75,12 +91,13 @@ def plot_histogram(inputfile='average_intensity_all.csv', outputplot='average_in
     print("e")
     plt.title('Number of images used: ' + str(n_images))
     print("f")
+    print(f"Histogram plotted to {outputplot}")
     return outputplot
 
 
 def run():
     parser = argparse.ArgumentParser(
-        description="pppp - Pump and Probe Processing Pipeline - 1st script - calculate average total scattered intensity"
+        description="pppp - X-ray Pump and Probe Processing Pipeline - 1st script - calculate average total scattered intensity"
     )
     parser.add_argument(
         "--dir", "--path",
@@ -248,15 +265,15 @@ done <tags.txt''')
     print("Check data in the file average_intensity_all.csv")
     print("You can use it to plot a histogram.")
 
-    try:
-        import numpy as np
-        import matplotlib.pyplot as plt
-        from pandas import read_csv
-        print("Plotting the result...")
-        outputplot = plot_histogram(inputfile='average_intensity_all.csv', outputplot='average_intensity_all.png')
-        print(f"Histogram plotted to {outputplot}")
-    except:
-        print(f"Histogram not plotted. :-(")
+    # try:
+    # import numpy as np
+    # import matplotlib.pyplot as plt
+    # from pandas import read_csv
+    # print("Plotting the result...")
+    outputplot = plot_histogram(inputfile='average_intensity_all.csv', outputplot='average_intensity_all.png')
+    # print(f"Histogram plotted to {outputplot}")
+    # except:
+    # print(f"Histogram not plotted. :-(")
 
     if args.geom_crystfel:
         print("Creating events.lst for CrystFEL")
