@@ -8,15 +8,33 @@ import numpy as np
 import h5py
 
 # ----------------------------------------------------------------------
+# pppp - X-ray Pump and Probe Processing Pipeline
+# 2nd script - split diffraction images according to the threshold - average total scattered intensity
+#
+# Martin Maly - martin.maly@soton.ac.uk
+# https://github.com/MartinMalyMM/pppp
+# ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# dials.python pppp2.py --geom /path/to/geometry_refinement/refined.expt \
+# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /dls/x02-1/data/2022/mx15722-39/cheetah/
+#
+# dials.python pppp2.py --threshold 30 \
+#     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
+#     --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
+#     --geom /path/to/geometry_refinement/refined.expt \
 #     --mask /path/to/mask/pixels3.mask \
 #     --pdb /path/to/reference.pdb \
-#     --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
-#     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
 #     --spacegroup P21 --cell 50.0 60.0 70.0 90.0 90.0 90.0 --d_min 1.6 \
-#     --threshold 30
+#     --xia2 --dials
 # ----------------------------------------------------------------------
+#
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#            IMPORTANT SETTING - PATHS TO DIALS AND CRYSTFEL
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+SOURCE_DIALS = "module load dials/nightly"
+# SOURCE_DIALS = ""
+SOURCE_CRYSTFEL = "module load crystfel"
+# SOURCE_CRYSTFEL = ""
+# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 # https://stackoverflow.com/questions/2785821/is-there-an-easy-way-in-python-to-wait-until-certain-condition-is-true
@@ -52,6 +70,10 @@ def isfile_or_touch(path):
 
 
 def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
+    """Creates files for:
+       * xia2.ssx: filename_dose_point.h5, run_xia2.sh, run_xia2.phil, run_xia2.yml
+       * dials.stills_process: run_dials.sh, run_dials.phil, run_xia2_process.sh
+       * CrystFEL: events_pump.lst events_probe.lst events_not_assigned.lst"""
     if not threshold_high:
         threshold_high = threshold_low
     with open("radial_average.csv", "r") as f:
@@ -121,7 +143,15 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
 
 def run():
     parser = argparse.ArgumentParser(
-        description="pppp - Pump and Probe Processing Pipeline - 2nd script"
+        description="pppp - Pump and Probe Processing Pipeline - 2nd script - 2nd script - split diffraction images according to the threshold - average total scattered intensity"
+    )
+    parser.add_argument(
+        "--threshold",
+        type=float,
+        help="Threshold that divides pump and probe data",
+        required=True,
+        nargs='+',
+        metavar=('threshold_low', 'threshold_high'),
     )
     parser.add_argument(
         "--dir", "--path",
@@ -138,26 +168,38 @@ def run():
         nargs="+"
     )
     parser.add_argument(
+        "--events",
+        help="events.lst file from CrystFEL - required for generating of pump and probe event.lst files",
+        type=str,
+    )
+    parser.add_argument(
+        "--geom_crystfel",
+        help="Path to a geometry file for CrystFEL - required for generating of pump and probe event.lst files",
+        type=str,
+    )
+    parser.add_argument(
+        "--xia2",
+        help="After splitting the data, run xia2.ssx for data processing",
+        action="store_true",
+        default=True,
+    )
+    parser.add_argument(
+        "--dials",
+        help="After splitting the data, run dials.stills_process and xia2.ssx_reduce for data processing",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--geom",
+        help="Path to a geometry file for DIALS and xia2",
+        type=str,
+        #required=True,
+    )
+    parser.add_argument(
         "--pdb",
         help="Reference PDB file",
         type=str,
         #required=True,
-    )
-    parser.add_argument(
-        "--geom",
-        help="Path to a geometry file",
-        type=str,
-        #required=True,
-    )
-    parser.add_argument(
-        "--geom_crystfel",
-        help="Path to a geometry file for CrystFEL",
-        type=str,
-    )
-    parser.add_argument(
-        "--events",
-        help="events.lst file from CrystFEL",
-        type=str,
     )
     parser.add_argument(
         "--mask",
@@ -166,42 +208,10 @@ def run():
         #required=True,
     )
     parser.add_argument(
-        "--threshold",
-        type=float,
-        help="Threshold that divides pump and probe data",
-        required=True,
-        nargs='+',
-        metavar=('threshold_low', 'threshold_high'),
-    )
-    parser.add_argument(
-        "--sim", "--simulate",
-        help="Simulate: create files but not execute qsub jobs",
+        "--skip-splitting",
+        help="Skip data splitting, assuming the data have been split already",
         action="store_true",
-        dest="sim",
-    )
-    parser.add_argument(
-        "--just-split",
-        help="Just split the data to groups and not run data processing",
-        action="store_true",
-        dest="just_split",
-    )
-    parser.add_argument(
-        "--just-xia2",
-        help="Just run xia2.ssx, assuming data have been split already",
-        action="store_true",
-        dest="just_xia2",
-    )
-    parser.add_argument(
-        "--xia2",
-        help="Use xia2.ssx for data processing",
-        action="store_true",
-        default=True,
-    )
-    parser.add_argument(
-        "--dials",
-        help="Use dials.stills_process and xia2.ssx_reduce for data processing",
-        action="store_true",
-        default=False,
+        dest="skip_splitting",
     )
     parser.add_argument(
         "--d_min", "--highres",
@@ -225,9 +235,16 @@ def run():
         metavar=("cell_a", "cell_b", "cell_c", "cell_alpha", "cell_beta", "cell_gamma"),
         # required=True
     )
+    parser.add_argument(
+        "--sim", "--simulate",
+        help="Simulate: create files but not execute qsub jobs",
+        action="store_true",
+        dest="sim",
+    )
     args = parser.parse_args()
 
     print("PPPP Pump & Probe Processing Pipeline - step 2")
+    print("2nd script - split diffraction images according to the threshold - average total scattered intensity")
     cwd = os.getcwd()
     print(f"Working directory: {cwd}")
     print("")
@@ -265,16 +282,10 @@ def run():
     if args.path[-1] == "/":
         args.path = args.path[:-1]
 
-    # create files.lst for crystfel
-    # for i, f in enumerate(files):
-    #     with open("files.lst", "a+") as files_lst:
-    #         files_lst.write(args.path + "/" + f + "/run" + f + '''.h5
-    #''')
-
     events_pump_merge = []
     events_probe_merge = []
-    if not args.just_xia2:
-        print(f"Separating images to group using a threshold: {str(threshold_low)} {str(threshold_high)}...")
+    if not args.skip_splitting:
+        print(f"Separating images to groups using a threshold: {str(threshold_low)} {str(threshold_high)}...")
         for i, f in enumerate(files):
             os.chdir(f)
             events = None
@@ -295,53 +306,104 @@ def run():
         with open("events_probe.lst", "w") as f:
             f.write(''.join(events_probe_merge))
 
-    if args.just_split:
-        print("Done.")
-        return
+    #
+    # Create run_xia2.yml
+    #
+    with open("run_xia2.yml", "w") as r:
+        r.write(f"metadata:\n  dose_point:\n")
+        for i, f in enumerate(files):
+            r.write(f'    "{args.path}/{f}/run{f}.h5" : "{os.getcwd()}/{f}/{f}_dose_point.h5:/dose_point"\n')
+        r.write("""grouping:
+  merge_by:
+    values: 
+      - dose_point""")
 
     f_list = []
     for i, f in enumerate(files):
         f_list.append(f"{f}/run{f}")
     f_str = ",".join(f_list)
-    cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
-    cell_str_comma = str(args.cell[0]) + ", " + str(args.cell[1]) + ", " + str(args.cell[2]) + ", " + str(args.cell[3]) + ", " + str(args.cell[4]) + ", " + str(args.cell[5])
 
-    if args.xia2 and not args.dials:
-        #
-        # run_xia2.sh
-        #
-        with open("run_xia2.sh", "w") as r:
-            r.write(f"""module load dials/nightly
+    #
+    # Create run_xia2.sh
+    #
+    with open("run_xia2.sh", "w") as r:
+        r.write(f"""module load dials/nightly
 # source /dls/science/users/FedID/dials/dials
 xia2.ssx run_xia2.phil image={args.path}/""" + "{" + f_str + "}.h5")
 
-        #
-        # run_xia2.phil
-        #
-        with open("run_xia2.phil", "w") as r:
-            r.write(f"""reference_geometry={args.geom}
-mask={args.mask}
-spotfinding.min_spot_size=2
+    #
+    # Create run_xia2.phil
+    #
+    with open("run_xia2.phil", "w") as r:
+        r.write(f"""spotfinding.min_spot_size=2
 spotfinding.max_spot_size=10
-space_group={args.spacegroup}
-indexing.unit_cell={cell_str}
-reference={args.pdb}
 grouping=run_xia2.yml""")
-            if args.d_min:
-                r.write(f"\nd_min={args.d_min}")
-    
-        #
-        # run_xia2.yml
-        #
-        with open("run_xia2.yml", "w") as r:
-            r.write(f"metadata:\n  dose_point:\n")
-            for i, f in enumerate(files):
-                r.write(f'    "{args.path}/{f}/run{f}.h5" : "{os.getcwd()}/{f}/{f}_dose_point.h5:/dose_point"\n')
-            r.write("""grouping:
-  merge_by:
-    values: 
-      - dose_point""")
+        if args.geom: r.write(f"\nreference_geometry={args.geom}")
+        if args.mask: r.write(f"\nmask={args.mask}")
+        if args.spacegroup: r.write(f"\nspace_group={args.spacegroup}")
+        if args.geom: r.write(f"\nreference={args.pdb}")
+        if args.d_min: r.write(f"\nd_min={args.d_min}")
+        if args.cell:
+            cell_str = str(args.cell[0]) + " " + str(args.cell[1]) + " " + str(args.cell[2]) + " " + str(args.cell[3]) + " " + str(args.cell[4]) + " " + str(args.cell[5])
+            cell_str_comma = str(args.cell[0]) + ", " + str(args.cell[1]) + ", " + str(args.cell[2]) + ", " + str(args.cell[3]) + ", " + str(args.cell[4]) + ", " + str(args.cell[5])
+            r.write(f"\nindexing.unit_cell={cell_str}")
 
+    #
+    # Create run_dials.phil
+    #
+    run_dials_phil_base = f"""spotfinder.filter.min_spot_size=2
+spotfinder.filter.max_spot_size=10
+#significance_filter.enable=True
+#significance_filter.isigi_cutoff=1.0
+mp.nproc = 20
+mp.method=multiprocessing
+#refinement.parameterisation.detector.fix=none"""
+    if args.geom: run_dials_phil_base += f"\ninput.reference_geometry={args.geom}"
+    if args.mask:
+        run_dials_phil_base += f"\nspotfinder.lookup.mask={args.mask}"
+        run_dials_phil_base += f"\nintegration.lookup.mask={args.mask}"
+    run_dials_phil_base += """
+indexing {
+  stills.indexer=stills
+  stills.method_list=fft1d real_space_grid_search
+  multiple_lattice_search.max_lattices=3"""
+    if args.spacegroup and args.cell:
+        run_dials_phil_base += """
+  known_symmetry {
+    space_group = """ + args.spacegroup + """
+     unit_cell = """ + cell_str_comma + """
+  }"""
+    run_dials_phil_base += "\n}"
+    if args.d_min:
+        run_dials_phil_base += f"\nspotfinder.filter.d_min={args.d_min}\n"
+
+    #
+    # Create run_dials.sh
+    #
+    with open("run_dials.sh", "w") as r:
+        run_dials_sh_base = "module load dials/nightly\n" \
+            "dials.stills_process run_dials.phil "
+    groups = ["pump", "probe"]
+    for i, f in enumerate(files):
+        os.chdir(f)
+        for group in groups:
+            with open(f"{group}.txt", "r") as p:
+                images = p.read()
+            os.mkdir(group)
+            os.chdir(group)
+            with open("run_dials.phil", "w") as r:
+                r.write(run_dials_phil_base)
+                for line in images.splitlines():
+                    r.write(f"input.image_tag={line}\n")
+            with open("run_dials.sh", "w") as r:
+                r.write(run_dials_sh_base)
+                r.write(f"{args.path}/{f}/run{f}.h5")
+
+    # if args.just_split:
+    #     print("Done.")
+    #     return
+
+    if args.xia2:
         print(f"Executing xia2.ssx...")
         p = subprocess.Popen(
             ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
@@ -354,54 +416,13 @@ grouping=run_xia2.yml""")
             print(f"STDERR: {err}")
         job_id = int(output.splitlines()[0].split()[2])
 
-
-    elif args.dials:
+    if args.dials:
         print(f"Executing dials.stills_process jobs...")
         job_ids1 = []
-        # run_dials.phil
-        run_dials_phil_base = f"""input.reference_geometry={args.geom}
-spotfinder.lookup.mask={args.mask}
-integration.lookup.mask={args.mask}
-spotfinder.filter.min_spot_size=2
-spotfinder.filter.max_spot_size=10
-#significance_filter.enable=True
-#significance_filter.isigi_cutoff=1.0
-mp.nproc = 20
-mp.method=multiprocessing
-#refinement.parameterisation.detector.fix=none"""
-        run_dials_phil_base += """
-indexing {
-  known_symmetry {
-    space_group = """ + args.spacegroup + """
-     unit_cell = """ + cell_str_comma + """
-   }
-  stills.indexer=stills
-  stills.method_list=fft1d real_space_grid_search
-  multiple_lattice_search.max_lattices=3
-}"""
-        if args.d_min:
-            run_dials_phil_base += f"\nspotfinder.filter.d_min={args.d_min}\n"
-
-        # run_dials.sh
-        with open("run_dials.sh", "w") as r:
-            run_dials_sh_base = "module load dials/nightly\n" \
-                "dials.stills_process run_dials.phil "
-
-        groups = ["pump", "probe"]
         for i, f in enumerate(files):
             os.chdir(f)
             for group in groups:
-                with open(f"{group}.txt", "r") as p:
-                    images = p.read()
-                os.mkdir(group)
                 os.chdir(group)
-                with open("run_dials.phil", "w") as r:
-                    r.write(run_dials_phil_base)
-                    for line in images.splitlines():
-                        r.write(f"input.image_tag={line}\n")
-                with open("run_dials.sh", "w") as r:
-                    r.write(run_dials_sh_base)
-                    r.write(f"{args.path}/{f}/run{f}.h5")
                 print(f"Executing dials.stills_process... {f} {group}")
                 p = subprocess.Popen(
                     ['qsub', '-pe', 'smp', '20', 'run_dials.sh'],# stdin=subprocess.PIPE,
@@ -428,14 +449,14 @@ indexing {
             os.mkdir(group)
             os.chdir(group)
             # run_ssx_reduce.sh
-            with open("run_xia2.sh", "w") as r:
+            with open("run_xia2_reduce.sh", "w") as r:
                 r.write("module load dials/nightly\n")
                 r.write("xia2.ssx_reduce ")
                 for i, f in enumerate(files):
                     r.write("../" + f + "/" + group + "/idx-*_integrated*.{expt,refl} ")
             print(f"Executing xia2.ssx_reduce... {group}")
             p = subprocess.Popen(
-                ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2.sh'],# stdin=subprocess.PIPE,
+                ['qsub', '-pe', 'smp', '20', '-q', 'medium.q', 'run_xia2_reduce.sh'],# stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 encoding="utf-8")  # shell=settings["sh"])
             output, err = p.communicate()
