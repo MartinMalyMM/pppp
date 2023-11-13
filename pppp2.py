@@ -16,7 +16,7 @@ import h5py
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
 # dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /path/to/cheetah/ \
-#     --events /path/to/events.lst --geom_crystfel /path/to/geometry.geom
+#     --events /path/to/events.lst
 #
 # dials.python pppp2.py --threshold 30 \
 #     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
@@ -170,11 +170,6 @@ def run():
     parser.add_argument(
         "--events",
         help="events.lst file from CrystFEL - required for generating of pump and probe event.lst files",
-        type=str,
-    )
-    parser.add_argument(
-        "--geom_crystfel",
-        help="Path to a geometry file for CrystFEL - required for generating of pump and probe event.lst files",
         type=str,
     )
     parser.add_argument(
