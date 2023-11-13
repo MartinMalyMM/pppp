@@ -398,6 +398,8 @@ indexing {
             with open("run_dials.sh", "w") as r:
                 r.write(run_dials_sh_base)
                 r.write(f"{args.path}/{f}/run{f}.h5")
+            os.chdir("..")
+        os.chdir("..")
 
     # if args.just_split:
     #     print("Done.")
