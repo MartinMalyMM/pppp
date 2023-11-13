@@ -76,7 +76,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
        * CrystFEL: events_pump.lst events_probe.lst events_not_assigned.lst"""
     if not threshold_high:
         threshold_high = threshold_low
-    with open("average_intensity_all.csv", "r") as f:
+    with open("average_intensity.csv", "r") as f:
         lines = f.readlines()
     if len(lines) == 1:
         lines = lines[0].split()
