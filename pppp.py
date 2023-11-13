@@ -75,22 +75,22 @@ def plot_histogram(inputfile='average_intensity_all.csv', outputplot='average_in
         return None
 
     print("Plotting the result...")
-    print("a")
     df = read_csv(inputfile, header=None, index_col=False, sep=',',
                   names=("runevent", "average_intensity"))
-    print("b")
     x = df["average_intensity"].to_numpy()
-    print("c")
     n_images = x.size
-    n, bins, patches = plt.hist(x, 250, density=True, facecolor='g', alpha=0.75)
-    plt.xlim([0, 90])
+    maximal_intensity = 100
+    n_histogram_bins = 2 * maximal_intensity
+    n_labels = maximal_intensity / 10
+    n, bins, patches = plt.hist(x, n_histogram_bins, density=True, facecolor='g', alpha=0.75)
+    plt.xlim([0, maximal_intensity])
+    n_images = x.size
+    plt.locator_params(nbins=n_labels, axis='x')
     plt.xlabel('Average total scattered intensity')
     plt.grid(True)
-    print("d")
-    plt.savefig(outputplot, bbox_inches="tight", dpi=200)
-    print("e")
     plt.title('Number of images used: ' + str(n_images))
-    print("f")
+    plt.savefig(outputplot, bbox_inches="tight", dpi=200)
+    plt.title('Number of images used: ' + str(n_images))
     print(f"Histogram plotted to {outputplot}")
     return outputplot
 
