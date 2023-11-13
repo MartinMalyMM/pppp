@@ -12,6 +12,7 @@ Before you run
 Open both scripts and set commands in the section 'IMPORTANT SETTING' which can load DIALS and CRYSTFEL on your system - using the variables SOURCE_DIALS and SOURCE_CRYSTFEL.
 The default setting works well at Diamond Light Source.
 
+
 How to use
 ----------
 
@@ -28,24 +29,24 @@ Average total scattered intensity will be calculated using dials.radial_average,
 After finish, you should be able to see a file average_intensity_all.csv with calculated average intensities and histogram average_intensity_all.png. Based on the result, decide what intensity will be your threshold - a value that divides pump and probe data - typically it is around an intensity of 30.
 If you specified a geometry file for CrystFEL, you should also see events.lst.
 
-.. image:: README_images/example_gui.gif
+.. image:: pppp_average_intensity_all_futa.gif
 
 Thus, now the data splitting can be actually performed - run the second script while specifying a threshold value:
 
 .. code ::
 
    $ dials.python pppp2.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
-                          --files 133451 133452 133453 \
-                          --geom /path/to/geometry_refinement/refined.expt \
-                          --threshold 30
+                           --files 133451 133452 133453 \
+                           --geom /path/to/geometry_refinement/refined.expt \
+                           --threshold 30
 
 This script will create several files that specify pump and probe groups of diffraction images. Subsequently, they can be then used to run xia2.ssx, CrystFEL or dials.stills_process.
 
-For CrystFEL: events_pump.lst and events_probe.lst
+  * For CrystFEL: events_pump.lst and events_probe.lst
 
-For xia2.ssx: run_xia2.sh that links to run_xia2.phil that links to run_xia2.yml that link to individual metadata .h5 files in subfolders (e.g. /path/to/133451-2/133451-0_dose_point.h5). So specify any other required parameters in run_xia2.phil and you are ready to run using run_xia2.sh
+  * For xia2.ssx: run_xia2.sh that links to run_xia2.phil that links to run_xia2.yml that link to individual metadata .h5 files in subfolders (e.g. /path/to/133451-2/133451-0_dose_point.h5). So specify any other required parameters in run_xia2.phil and you are ready to run using run_xia2.sh
 
-For dials.stills_process: individual files in folders e.g. /path/to/133451-2/probe/run_dials.sh and /path/to/133451-2/probe/run_dials.phil
+  * For dials.stills_process: individual files in folders e.g. /path/to/133451-2/probe/run_dials.sh and /path/to/133451-2/probe/run_dials.phil
 
 It is also possible to run automatically xia2.ssx and/or dials.stills_process when other parameters are specified and arguments --xia2 and/or --dials are used:
 
@@ -104,7 +105,7 @@ All available options can be listed using :code:`--help`:
      --pdb PDB             Absolute path to a reference PDB file
      --mask MASK           Absolute path to a mask file
      --skip-splitting      Skip data splitting, assuming the data have been split already
-    --d_min D_MIN, --highres D_MIN
+     --d_min D_MIN, --highres D_MIN
                            High-resolution cutoff
      --spacegroup spacegroup
                            Specify space group
@@ -113,38 +114,4 @@ All available options can be listed using :code:`--help`:
      --sim, --simulate     Simulate: create files but not execute qsub jobs
 
 
-
-   $ dials.python pppp2.py --help
-   usage: pppp2.py [-h] --dir PATH --files FILES [FILES ...] [--pdb PDB]
-                   [--geom GEOM] [--mask MASK] --threshold threshold_low
-                   [threshold_high ...] [--sim] [--just-split] [--just-xia2]
-                   [--d_min D_MIN] --spacegroup spacegroup --cell cell_a cell_b
-                   cell_c cell_alpha cell_beta cell_gamma
-
-   pppp - Pump and Probe Processing Pipeline - 2nd script
-
-   optional arguments:
-     -h, --help            show this help message and exit
-     --dir PATH, --path PATH
-                           Path to the directory with data
-     --files FILES [FILES ...]
-                           Names of files to be involved in processing
-     --pdb PDB             Reference PDB file
-     --geom GEOM           Path to a geometry file
-     --mask MASK           Path to a mask file
-     --threshold threshold_low [threshold_high ...]
-                           Threshold that divides pump and probe data
-     --sim, --simulate     Simulate: create files but not execute qsub jobs
-     --just-split          Just split the data to groups and not run xia2.ssx
-     --just-xia2           Just run xia2.ssx, assuming data have been split
-                           already
-     --d_min D_MIN, --highres D_MIN
-                           High-resolution cutoff
-     --spacegroup spacegroup
-                           Specify space group
-     --cell cell_a cell_b cell_c cell_alpha cell_beta cell_gamma
-                           Specify unit cell parameters divided by spaces, e.g.
-                           60 50 40 90 90 90
-
-
-Developed by Martin Maly, `martin.maly@soton.ac.uk <mailto:martin.maly@soton.ac.uk>`_ , (University of Southampton and Diamond Light Source and CCP4]
+Developed by Martin Maly, `martin.maly@soton.ac.uk <mailto:martin.maly@soton.ac.uk>`_ , (University of Southampton and Diamond Light Source and CCP4)
