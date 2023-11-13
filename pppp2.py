@@ -15,7 +15,7 @@ import h5py
 # https://github.com/MartinMalyMM/pppp
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /dls/x02-1/data/2022/mx15722-39/cheetah/
+# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --geom_crystfel /path/to/geometry_refinement/geometry.geom
 #
 # dials.python pppp2.py --threshold 30 \
 #     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
@@ -76,7 +76,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
        * CrystFEL: events_pump.lst events_probe.lst events_not_assigned.lst"""
     if not threshold_high:
         threshold_high = threshold_low
-    with open("radial_average.csv", "r") as f:
+    with open("average_intensity_all.csv", "r") as f:
         lines = f.readlines()
     if len(lines) == 1:
         lines = lines[0].split()
