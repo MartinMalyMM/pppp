@@ -29,12 +29,10 @@ import h5py
 # ----------------------------------------------------------------------
 #
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#            IMPORTANT SETTING - PATHS TO DIALS AND CRYSTFEL
+#            IMPORTANT SETTING - PATH TO DIALS
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 SOURCE_DIALS = "module load dials/nightly"
 # SOURCE_DIALS = ""
-SOURCE_CRYSTFEL = "module load crystfel"
-# SOURCE_CRYSTFEL = ""
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
@@ -328,8 +326,7 @@ def run():
     # Create run_xia2.sh
     #
     with open("run_xia2.sh", "w") as r:
-        r.write(f"""module load dials/nightly
-# source /dls/science/users/FedID/dials/dials
+        r.write(f"""{SOURCE_DIALS}
 xia2.ssx run_xia2.phil image={args.path}/""" + "{" + f_str + "}.h5")
 
     #
@@ -382,7 +379,7 @@ indexing {
     # Create run_dials.sh
     #
     with open("run_dials.sh", "w") as r:
-        run_dials_sh_base = "module load dials/nightly\n" \
+        run_dials_sh_base = f"{SOURCE_DIALS}\n" \
             "dials.stills_process run_dials.phil "
     groups = ["pump", "probe"]
     for i, f in enumerate(files):
@@ -453,7 +450,7 @@ indexing {
             os.chdir(group)
             # run_ssx_reduce.sh
             with open("run_xia2_reduce.sh", "w") as r:
-                r.write("module load dials/nightly\n")
+                r.write(SOURCE_DIALS + "\n")
                 r.write("xia2.ssx_reduce ")
                 for i, f in enumerate(files):
                     r.write("../" + f + "/" + group + "/idx-*_integrated*.{expt,refl} ")
