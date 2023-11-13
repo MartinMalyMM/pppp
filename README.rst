@@ -1,26 +1,66 @@
 pppp - Pump and Probe Processing Pipeline
 =========================================
 
-Split pump and probe serial MX data (according intensity radial average) and process them using xia2.ssx
+Two scripts for serial macromolecular crystallography.
+Split pump and probe diffraction images according average total scattered intensity.
 
-Requirements: GNU/Linux, Python 3 (e.g. dials.python), qsub, module load dials/nightly
+Requirements: GNU/Linux, Python 3 (e.g. dials.python), qsub, DIALS or CrystFEL.
 
-Example of usage:
+Before you run
+--------------
+
+Open both scripts and set commands in the section 'IMPORTANT SETTING' which can load DIALS and CRYSTFEL on your system - using the variables SOURCE_DIALS and SOURCE_CRYSTFEL.
+The default setting works well at Diamond Light Source.
+
+How to use
+----------
+
+Example of usage: Open command line, create an empty directory, locate there, load DIALS and execute a command similar to this:
 
 .. code ::
 
-   $ dials.python pppp.py --geom /path/to/geometry_refinement/refined.expt \
-                          --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
-                          --files 133451-0 133451-1 133451-2
+   $ dials.python pppp.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
+                          --files 133451 133452 133453 \
+                          --geom /path/to/geometry_refinement/refined.expt \
+                          --geom_crystfel /path/to/geometry1.geom
+
+Average total scattered intensity will be calculated using dials.radial_average, it will take several minutes even using a computational cluster.
+After finish, you should be able to see a file average_intensity_all.csv with calculated average intensities and histogram average_intensity_all.png. Based on the result, decide what intensity will be your threshold - a value that divides pump and probe data - typically it is around an intensity of 30.
+If you specified a geometry file for CrystFEL, you should also see events.lst.
+
+.. image:: README_images/example_gui.gif
+
+Thus, now the data splitting can be actually performed - run the second script while specifying a threshold value:
+
+.. code ::
+
+   $ dials.python pppp2.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
+                          --files 133451 133452 133453 \
+                          --geom /path/to/geometry_refinement/refined.expt \
+                          --threshold 30
+
+This script will create several files that specify pump and probe groups of diffraction images. Subsequently, they can be then used to run xia2.ssx, CrystFEL or dials.stills_process.
+
+For CrystFEL: events_pump.lst and events_probe.lst
+
+For xia2.ssx: run_xia2.sh that links to run_xia2.phil that links to run_xia2.yml that link to individual metadata .h5 files in subfolders (e.g. /path/to/133451-2/133451-0_dose_point.h5). So specify any other required parameters in run_xia2.phil and you are ready to run using run_xia2.sh
+
+For dials.stills_process: individual files in folders e.g. /path/to/133451-2/probe/run_dials.sh and /path/to/133451-2/probe/run_dials.phil
+
+It is also possible to run automatically xia2.ssx and/or dials.stills_process when other parameters are specified and arguments --xia2 and/or --dials are used:
+
+.. code ::
+
    $ dials.python pppp2.py --geom /path/to/geometry_refinement/refined.expt \
                            --mask /path/to/mask/pixels3.mask \
                            --pdb /path/to/reference.pdb \
                            --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
-                           --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
+                           --files 133451 133452 133453 \
                            --spacegroup P21 --cell 50.0 60.0 70.0 90.0 90.0 90.0 --d_min 1.6 \
-                           --threshold 30
+                           --threshold 30 \
+                           --xia2 --dials
 
-Other options can be listed using :code:`--help`:
+All available options can be listed using :code:`--help`:
 
 .. code ::
 
@@ -32,14 +72,47 @@ Other options can be listed using :code:`--help`:
    optional arguments:
      -h, --help            show this help message and exit
      --dir PATH, --path PATH
-                           Path to the directory with data
+                           Absolute path to the directory with data
      --files FILES [FILES ...]
                            Names of files to be involved in processing
-     --geom GEOM           Path to a geometry file
+     --geom GEOM           Absolute path to a geometry file for DIALS or xia2
+     --geom_crystfel GEOM_CRYSTFEL
+                        Absolute path to a geometry file for CrystFEL
      --sim, --simulate     Simulate: create files but not execute qsub jobs
 
 
 .. code ::
+
+   $ python3 pppp2.py --help
+   usage: pppp2.py [-h] --threshold threshold_low [threshold_high ...] --dir PATH [--files FILES [FILES ...]] [--events EVENTS] [--xia2] [--dials] [--geom GEOM] [--pdb PDB] [--mask MASK] [--skip-splitting] [--d_min D_MIN]
+                   [--spacegroup spacegroup] [--cell cell_a cell_b cell_c cell_alpha cell_beta cell_gamma] [--sim]
+
+   pppp - Pump and Probe Processing Pipeline - 2nd script - split diffraction images according to the threshold - average total scattered intensity
+
+   options:
+     -h, --help            show this help message and exit
+     --threshold threshold_low [threshold_high ...]
+                           Threshold that divides pump and probe data
+     --dir PATH, --path PATH
+                           Absolute path to the directory with data
+     --files FILES [FILES ...]
+                           Names of files to be involved in processing
+     --events EVENTS       Absolute path to an events.lst file from CrystFEL - required for generating of pump and probe event.lst files
+     --xia2                After splitting the data, run xia2.ssx for data processing
+     --dials               After splitting the data, run dials.stills_process and xia2.ssx_reduce for data processing
+     --geom GEOM           Absolute path to a geometry file for DIALS and xia2
+     --pdb PDB             Absolute path to a reference PDB file
+     --mask MASK           Absolute path to a mask file
+     --skip-splitting      Skip data splitting, assuming the data have been split already
+    --d_min D_MIN, --highres D_MIN
+                           High-resolution cutoff
+     --spacegroup spacegroup
+                           Specify space group
+     --cell cell_a cell_b cell_c cell_alpha cell_beta cell_gamma
+                           Specify unit cell parameters divided by spaces, e.g. 60 50 40 90 90 90
+     --sim, --simulate     Simulate: create files but not execute qsub jobs
+
+
 
    $ dials.python pppp2.py --help
    usage: pppp2.py [-h] --dir PATH --files FILES [FILES ...] [--pdb PDB]
@@ -73,21 +146,5 @@ Other options can be listed using :code:`--help`:
                            Specify unit cell parameters divided by spaces, e.g.
                            60 50 40 90 90 90
 
-Customised installation of DIALS
---------------------------------
-
-Sometimes a current nightly build of DIALS does not support all the required features. Then it is needed to source your customised DIALS installation. To do so, replace in pppp2.py these lines 205-206:
-
-.. code ::
-
-   module load dials/nightly
-   $ source /dls/science/users/FedID/dials/dials
-
-with these lines:
-
-.. code ::
-
-   # module load dials/nightly
-   source /path/to/your/dials/dials
 
 Developed by Martin Maly, `martin.maly@soton.ac.uk <mailto:martin.maly@soton.ac.uk>`_ , (University of Southampton and Diamond Light Source and CCP4]

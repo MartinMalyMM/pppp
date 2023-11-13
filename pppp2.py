@@ -143,7 +143,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
 
 def run():
     parser = argparse.ArgumentParser(
-        description="pppp - Pump and Probe Processing Pipeline - 2nd script - 2nd script - split diffraction images according to the threshold - average total scattered intensity"
+        description="pppp - Pump and Probe Processing Pipeline - 2nd script - split diffraction images according to the threshold - average total scattered intensity"
     )
     parser.add_argument(
         "--threshold",
@@ -155,7 +155,7 @@ def run():
     )
     parser.add_argument(
         "--dir", "--path",
-        help="Path to the directory with data",
+        help="Absolute path to the directory with data",
         type=str,
         required=True,
         dest="path"
@@ -169,7 +169,7 @@ def run():
     )
     parser.add_argument(
         "--events",
-        help="events.lst file from CrystFEL - required for generating of pump and probe event.lst files",
+        help="Absolute path to an events.lst file from CrystFEL - required for generating of pump and probe event.lst files",
         type=str,
     )
     parser.add_argument(
@@ -186,19 +186,19 @@ def run():
     )
     parser.add_argument(
         "--geom",
-        help="Path to a geometry file for DIALS and xia2",
+        help="Absolute path to a geometry file for DIALS and xia2",
         type=str,
         #required=True,
     )
     parser.add_argument(
         "--pdb",
-        help="Reference PDB file",
+        help="Absolute path to a reference PDB file",
         type=str,
         #required=True,
     )
     parser.add_argument(
         "--mask",
-        help="Path to a mask file",
+        help="Absolute path to a mask file",
         type=str,
         #required=True,
     )

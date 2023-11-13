@@ -101,7 +101,7 @@ def run():
     )
     parser.add_argument(
         "--dir", "--path",
-        help="Path to the directory with data",
+        help="Absolute path to the directory with data",
         type=str,
         required=True,
         dest="path"
@@ -115,13 +115,13 @@ def run():
     )
     parser.add_argument(
         "--geom",
-        help="Path to a geometry file for DIALS",
+        help="Absolute path to a geometry file for DIALS or xia2",
         type=str,
         required=True,
     )
     parser.add_argument(
         "--geom_crystfel",
-        help="Path to a geometry file for CrystFEL",
+        help="Absolute path to a geometry file for CrystFEL",
         type=str,
     )
     parser.add_argument(
