@@ -100,7 +100,8 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
         if i == 0:
             print(f"File {file_h5}")
-            if events:
+        if events:
+            if i == 0:
                 lines_events = list(filter(lambda x:file_h5 in x, lines_events_all))
                 print(f"No. of events: {str(len(lines_events))}")
             line_event = lines_events[i]
