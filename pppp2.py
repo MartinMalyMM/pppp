@@ -15,11 +15,12 @@ import h5py
 # https://github.com/MartinMalyMM/pppp
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --geom_crystfel /path/to/geometry_refinement/geometry.geom
+# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /path/to/cheetah/ \
+#     --events /path/to/events.lst --geom_crystfel /path/to/geometry.geom
 #
 # dials.python pppp2.py --threshold 30 \
 #     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
-#     --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
+#     --dir /path/to/cheetah/ \
 #     --geom /path/to/geometry_refinement/refined.expt \
 #     --mask /path/to/mask/pixels3.mask \
 #     --pdb /path/to/reference.pdb \
@@ -99,12 +100,11 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
         file_h5 = run.split("_")[0].replace("run", "")
         # event = str(int(run.split("_")[1]))
         # line_crystfel = f"{dir}/{file_h5}/run{file_h5}.h5 //{event} \n"
-        if events:
-            if i == 0:
-                print(file_h5)
-                print(lines_events_all[i])
+        if i == 0:
+            print(f"File {file_h5}")
+            if events:
                 lines_events = list(filter(lambda x:file_h5 in x, lines_events_all))
-                print(str(len(lines_events)))
+                print(f"No. of events: {str(len(lines_events))}")
             line_event = lines_events[i]
         if rad_average < threshold_low:
             a = np.append(a, 0)
@@ -127,6 +127,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
+        print("")
     isfile_or_touch("pump.txt")
     isfile_or_touch("probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
@@ -181,7 +182,7 @@ def run():
         "--xia2",
         help="After splitting the data, run xia2.ssx for data processing",
         action="store_true",
-        default=True,
+        default=False,
     )
     parser.add_argument(
         "--dials",
