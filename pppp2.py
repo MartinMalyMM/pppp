@@ -127,7 +127,6 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
             if events:
                 with open("events_not_assigned.lst", "a+") as f:
                     f.write(line_event)
-        print("")
     isfile_or_touch("pump.txt")
     isfile_or_touch("probe.txt")
     if os.path.isfile("not_assigned.txt"): print(f"File created: {os.path.basename(os.getcwd())}/not_assigned.txt")
@@ -139,6 +138,7 @@ def create_dose_point_h5(dir, threshold_low, threshold_high=None, events=None):
     f.create_dataset("dose_point", data=a)
     f.close()
     print(f"File created: {os.path.basename(os.getcwd())}/{os.path.basename(os.getcwd())}_dose_point.h5")
+    print("")
     return
 
 
