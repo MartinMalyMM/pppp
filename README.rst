@@ -2,7 +2,7 @@ pppp - Pump and Probe Processing Pipeline
 =========================================
 
 Two scripts for serial macromolecular crystallography.
-Split pump and probe diffraction images according average total scattered intensity.
+Split pump and probe diffraction images according to the average total scattered intensity.
 
 Requirements: GNU/Linux, Python 3 (e.g. dials.python), qsub, DIALS or CrystFEL.
 
@@ -44,7 +44,7 @@ This script will create several files that specify pump and probe groups of diff
 
   * For CrystFEL: events_pump.lst and events_probe.lst
 
-  * For xia2.ssx: run_xia2.sh that links to run_xia2.phil that links to run_xia2.yml that link to individual metadata .h5 files in subfolders (e.g. /path/to/133451-2/133451-0_dose_point.h5). So specify any other required parameters in run_xia2.phil and you are ready to run using run_xia2.sh
+  * For xia2.ssx: run_xia2.sh that links to run_xia2.phil that links to run_xia2.yml that links to individual metadata .h5 files in subfolders (e.g. /path/to/133451-2/133451-0_dose_point.h5). So specify any other required parameters in run_xia2.phil and you are ready to run using run_xia2.sh
 
   * For dials.stills_process: individual files in folders e.g. /path/to/133451-2/probe/run_dials.sh and /path/to/133451-2/probe/run_dials.phil
 
