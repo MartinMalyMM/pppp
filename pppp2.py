@@ -15,13 +15,12 @@ import h5py
 # https://github.com/MartinMalyMM/pppp
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /path/to/cheetah/ \
-#     --events /path/to/events.lst
+# dials.python pppp2.py --threshold 30 --files 133357 133358 --dir /path/to/cheetah/ --events /path/to/events.lst
 #
-# dials.python pppp2.py --threshold 30 \
+# dials.python pppp2.py --threshold 32 35 \
 #     --files 133357-0 133357-1 133357-2 133358-0 133358-1 133358-2 133359-0 133359-1 133359-2 \
 #     --dir /path/to/cheetah/ \
-#     --geom /path/to/geometry_refinement/refined.expt \
+#     --geom /path/to/refined.expt \
 #     --mask /path/to/mask/pixels3.mask \
 #     --pdb /path/to/reference.pdb \
 #     --spacegroup P21 --cell 50.0 60.0 70.0 90.0 90.0 90.0 --d_min 1.6 \
