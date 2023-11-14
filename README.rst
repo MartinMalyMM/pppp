@@ -22,7 +22,7 @@ Example of usage: Open command line, create an empty directory, locate there, lo
 
    $ dials.python pppp.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
                           --files 133451 133452 133453 \
-                          --geom /path/to/geometry_refinement/refined.expt \
+                          --geom /path/to/refined.expt \
                           --geom_crystfel /path/to/geometry1.geom
 
 Average total scattered intensity will be calculated using dials.radial_average, it will take several minutes even using a computational cluster.
@@ -31,13 +31,13 @@ If you specified a geometry file for CrystFEL, you should also see events.lst.
 
 .. image:: pppp_average_intensity_all_futa.gif
 
-Thus, now the data splitting can be actually performed - run the second script while specifying a threshold value:
+Thus, now the data splitting can be actually performed - run the second script while specifying a threshold value and possibly an events.lst file:
 
 .. code ::
 
    $ dials.python pppp2.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ \
                            --files 133451 133452 133453 \
-                           --geom /path/to/geometry_refinement/refined.expt \
+                           --events /path/to/events.lst \
                            --threshold 30
 
 This script will create several files that specify pump and probe groups of diffraction images. Subsequently, they can be then used to run xia2.ssx, CrystFEL or dials.stills_process.
