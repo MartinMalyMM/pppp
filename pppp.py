@@ -14,8 +14,8 @@ import numpy as np
 # https://github.com/MartinMalyMM/pppp
 # ----------------------------------------------------------------------
 # EXAMPLE USAGE
-# dials.python pppp.py --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --files 133451 --geom /path/to/geometry_refinement/refined.expt --geom_crystfel /path/to/geometry1.geom
-# dials.python pppp.py --geom /path/to/geometry_refinement/refined.expt --dir /dls/x02-1/data/2022/mx15722-39/cheetah/ --files 133451-0 133451-1 133451-2
+# dials.python pppp.py --dir /path/to/cheetah/ --files 133451 --geom /path/to/refined.expt --geom_crystfel /path/to/geometry1.geom
+# dials.python pppp.py --dir /path/to/cheetah/ --files 133451-0 133451-1 133451-2 --geom /path/to/refined.expt
 # ----------------------------------------------------------------------
 #
 # Dependencies: qsub and Python3 (e.g. dials.python) on GNU/Linux
